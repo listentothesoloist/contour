@@ -1,0 +1,28 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test invoice reconciliation and local API
+        working-directory: invoice-service
+        run: python -B -m unittest discover -s tests -v
+      - name: Verify file checksums
+        shell: pwsh
+        run: ./RESTORE.ps1 -ValidateOnly
+      - name: Render Kubernetes manifests
+        run: |
+          kubectl kustomize k8s/components > /dev/null
+          kubectl kustomize k8s/docker-desktop > /dev/null

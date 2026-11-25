@@ -1,0 +1,26 @@
+# Local cluster state and credentials
+.kubeconfig
+kubeconfig
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.pfx
+*.p12
+.transfer-runtime/
+
+# Generated files
+/security-audit/reports/
+*.log
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

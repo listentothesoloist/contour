@@ -1,0 +1,24 @@
+# Keep LF line endings across macOS, Windows, and Linux so container scripts
+# and SHA-256 checksums stay identical after git clone.
+* text=auto eol=lf
+
+*.ps1 text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.drawio text eol=lf
+Dockerfile* text eol=lf
+
+*.xlsx binary -eol
+*.zip binary -eol
+*.gz binary -eol
+*.png binary -eol
+*.ico binary -eol
