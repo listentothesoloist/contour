@@ -31,4 +31,4 @@ kubectl --context docker-desktop -n observability port-forward svc/grafana 13000
 
 Open the [system dashboard](http://127.0.0.1:13000/d/otel-system) and sign in as `admin` with the password printed above.
 
-Credits: @listentothesoloist @Squasr
+Credits: [@listentothesoloist](https://github.com/listentothesoloist) and [@Squasr](https://github.com/Squasr)
