@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../components
+patches:
+  - target:
+      kind: Deployment
+      name: target-passive-auditor
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: target-passive-auditor
+      spec:
+        template:
+          spec:
+            initContainers:
+              - name: local-model
+                imagePullPolicy: Always
+            containers:
+              - name: auditor
+                imagePullPolicy: Always
+  - target:
+      kind: Deployment
+      name: invoice-service
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: invoice-service
+      spec:
+        template:
+          spec:
+            containers:
+              - name: invoice-service
+                imagePullPolicy: Always
+  - target:
+      kind: Deployment
+      name: log-generator
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: log-generator
+      spec:
+        template:
+          spec:
+            containers:
+              - name: log-generator
+                imagePullPolicy: Always

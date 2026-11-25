@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Accountant workspace: reconcile supplier invoices against purchase orders and receipts, investigate discrepancies, and prepare the payment registry.">
+  <title>North Berry — Invoice Control</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css?v=hig">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 4h16l2 11v5H2v-5L4 4Z"/><path d="M2 15h6l2 3h4l2-3h6M8 8h8M8 11h5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7H5a2 2 0 0 1 0-4h13v4M3 5v14a2 2 0 0 0 2 2h15V7M20 11h-6v6h6"/><path d="M17 14h.01"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4M18 4h4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5v16M3 3h5a4 4 0 0 1 4 3 4 4 0 0 1 4-3h5v16h-5a4 4 0 0 0-4 2 4 4 0 0 0-4-2H3V3Z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M9 15v-5M14 15V6M19 15v-8"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3ZM12 9v5m0 3h.01"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18M7 15h3m4 0h3m-10 3h3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7l-5-5Zm0 0v6h5M8 12h8m-8 4h6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16m-4-4 4 4 4-4m6 4V4m-4 4 4-4 4 4"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M10 4v16M6 8h1m-1 4h1"/></symbol>
+  </defs></svg>
+
+  <div class="app-frame" id="appFrame">
+    <div class="app-nav">
+      <a class="brand" href="#queue" aria-label="North Berry — invoice overview"><span class="brand-mark" aria-hidden="true"></span><span class="brand-copy"><strong>North Berry</strong><span>Accounting</span></span></a>
+      <nav class="nav-tabs" id="appNavigation" aria-label="Primary navigation">
+        <button class="nav-tab active" data-tab="tab-queue" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-inbox"/></svg><span>Invoices</span></button>
+        <button class="nav-tab" data-tab="tab-registry"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg><span>Registry</span></button>
+        <button class="nav-tab" data-tab="tab-jury"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span>Check</span></button>
+        <button class="nav-tab" data-tab="tab-reference"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg><span>Reference</span></button>
+        <button class="nav-tab" data-tab="tab-analytics"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg><span>Analytics</span></button>
+      </nav>
+      <div class="nav-source">
+        <svg class="icon" aria-hidden="true"><use href="#i-file"/></svg>
+        <span class="nav-source-copy"><span>Workbook</span><strong id="navSourceName">case04.xlsx</strong></span>
+      </div>
+    </div>
+    <div class="app-shell">
+    <main id="main" tabindex="-1">
+      <header class="page-heading">
+        <div class="view-heading">
+          <button type="button" class="icon-btn sidebar-toggle" id="btnToggleSidebar" aria-controls="appNavigation" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar"><svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg></button>
+          <div class="heading-copy"><h1 id="pageTitle">Supplier Invoices</h1><p id="pageDescription">Snapshot as of Nov 16, 2026, 12:00 UTC</p></div>
+        </div>
+        <div class="heading-actions">
+          <input type="file" id="xlsxFileInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+          <button type="button" class="btn" id="btnUploadXlsx"><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg><span id="uploadXlsxLabel">Choose Excel (.xlsx)</span></button>
+          <button type="button" class="btn" id="btnResetXlsx" hidden>Reset to case04.xlsx</button>
+          <button class="btn btn-primary" data-goto="tab-jury"><svg class="icon" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New Email</span></button>
+        </div>
+      </header>
+
+      <div class="xlsx-review" id="xlsxReview" hidden>
+        <p id="xlsxReviewStatus" role="status"></p>
+        <button class="btn btn-sm" type="button" id="btnRetryXlsxReview" hidden>Retry AI Review</button>
+      </div>
+      <section id="tab-queue" class="tab-panel active" aria-label="Invoice queue">
+        <div class="kpi-grid">
+          <button class="kpi-card" data-quick-filter="ALL" title="Show all documents"><span class="kpi-top"><span class="metric-icon"><svg class="icon" aria-hidden="true"><use href="#i-inbox"/></svg></span>Incoming Documents</span><strong class="kpi-value" id="kpiTotalEmails">25 <small>emails</small></strong><span class="kpi-bottom"><span><b id="ordersCount">14</b> orders · <span id="approvalsCount">6 approvals</span></span></span></button>
+          <button class="kpi-card payable-card" data-quick-filter="READY_TO_PAY" title="Show reconciled invoices"><span class="kpi-top"><span class="metric-icon"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span>Ready for Registry</span><strong class="kpi-value" id="kpiPayableRub">$245,700</strong><span class="kpi-bottom"><span><b id="readyCount">8</b> invoices passed checks</span></span></button>
+          <button class="kpi-card risk-feature" data-quick-filter="ATTENTION" title="Show documents with discrepancies"><span class="kpi-top"><span class="metric-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span>Flagged Risk</span><strong class="kpi-value" id="kpiPreventedRub">$274,280</strong><span class="kpi-bottom"><span><b id="attentionCount">14</b> documents need attention</span></span></button>
+        </div>
+        <div class="queue-workspace">
+        <div class="queue-toolbar">
+          <h2>Document Queue <span class="count-bubble" id="queueCount">25</span></h2>
+          <div class="filter-pills" id="statusFilterPills" role="group" aria-label="Document status"><button class="pill active" data-status="ALL" aria-pressed="true">All <span id="filterAllCount">25</span></button><button class="pill" data-status="ATTENTION" aria-pressed="false">Needs Review <span id="filterAttentionCount">14</span></button><button class="pill" data-status="READY_TO_PAY" aria-pressed="false">Ready <span id="filterReadyCount">8</span></button><button class="pill" data-status="INFO_LETTER" aria-pressed="false">Info Emails <span id="filterInfoCount">3</span></button></div>
+          <button class="btn btn-quiet" id="btnExportAudit"><svg class="icon"><use href="#i-download"/></svg>Audit Report</button>
+        </div>
+        <div class="workspace-split" id="queueSplit" data-pane="list">
+          <div class="queue-card"><div class="table-toolbar"><label class="search-control"><svg class="icon"><use href="#i-search"/></svg><input type="search" id="queueSearchInput" placeholder="Supplier, invoice, or order…" aria-label="Search invoice queue"><kbd>/</kbd></label><select id="reasonFilterSelect" aria-label="Discrepancy type"><option value="ALL">All reasons</option><option value="CRITICAL_REQUISITES">Bank details</option><option value="DUPLICATE_OR_REPLACED">Duplicates</option><option value="PRICE_OR_QTY_UNAPPROVED">Price &amp; quantity</option><option value="MATH_ERROR">Arithmetic error</option><option value="NOT_ACCEPTED_YET">No receipt</option><option value="INFO_LETTER">Info emails</option></select><button class="icon-btn" id="btnSortQueue" aria-label="Sort by date: newest first" title="Newest first"><svg class="icon"><use href="#i-sort"/></svg></button></div>
+            <div class="queue-table-scroll scroll-region" id="queueScroll" tabindex="0" role="region" aria-label="Invoice list"><table class="queue-table"><caption class="sr-only">Incoming invoices and emails. Select a document to inspect details.</caption><thead><tr><th scope="col">Document / supplier</th><th scope="col">Status</th><th scope="col" class="number-cell">Amount</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead><tbody id="queueTableBody"></tbody></table><div class="empty-state" id="queueEmptyState" hidden><svg class="icon"><use href="#i-search"/></svg><h3>No matches found</h3><p>Try a different search query or reset filters.</p><button class="btn" id="btnResetFilters">Reset filters</button></div></div>
+            <div class="table-footer"><span id="queueResultsLabel" role="status">Showing 25 of 25 documents</span><span>All amounts exclude tax</span></div>
+          </div>
+          <aside class="inspector-card scroll-region" id="inspectorPanel" tabindex="0" aria-label="Selected document analysis" aria-live="polite"></aside>
+        </div>
+        </div>
+      </section>
+
+      <section id="tab-registry" class="tab-panel" aria-label="Payment registry" hidden>
+        <div class="section-grid-2 registry-summary"><div class="panel-card"><div class="panel-eyebrow">DRAFT REGISTRY</div><h2 id="registryTotalLabel">$245,700</h2><p id="registryIntroText">8 invoices passed order and receipt checks. Confirm they have not been paid before exporting.</p></div><div class="panel-card registry-check-card"><div class="panel-eyebrow">BANK STATEMENT VERIFIED</div><h2 id="treasurerVerifiedTotal">$0 · 0 of 8</h2><p>Checkmarks persist for this session only. Bank statements are not included in the workbook.</p><button class="btn btn-primary" id="btnExportRegistry" disabled><svg class="icon"><use href="#i-download"/></svg>Download Verified Invoices</button></div></div>
+        <div class="segment-control" data-segments role="group" aria-label="Registry invoice status">
+          <button class="segment active" data-show-pane="registry-ready" aria-controls="registry-ready" aria-pressed="true">Ready to Include</button>
+          <button class="segment" data-show-pane="registry-blocked" aria-controls="registry-blocked" aria-pressed="false">Pending Resolution <span id="blockedCount">14</span></button>
+        </div>
+        <div class="table-wrapper scroll-region content-pane" id="registry-ready" tabindex="0" role="region" aria-label="Invoices for statement verification"><table><caption class="sr-only">Invoices that passed reconciliation</caption><thead><tr><th>Document</th><th>Supplier / material</th><th>Order / basis</th><th>Accepted</th><th class="number-cell">Payable</th><th>Statement check</th></tr></thead><tbody id="registryTableBody"></tbody></table></div>
+        <div class="table-wrapper scroll-region content-pane" id="registry-blocked" tabindex="0" role="region" aria-label="Invoices with discrepancies" hidden><table><caption class="sr-only">Invoices with discrepancies</caption><thead><tr><th>Document</th><th>Supplier</th><th>Reason</th><th class="number-cell">Risk</th><th>Next step</th></tr></thead><tbody id="blockedTableBody"></tbody></table></div>
+      </section>
+
+      <section id="tab-jury" class="tab-panel" aria-label="Check new email" hidden>
+        <div class="segment-control jury-tabs" role="group" aria-label="Email check">
+          <button class="segment active" id="btnJuryEditor" aria-controls="juryEditor" aria-pressed="true">Email</button>
+          <button class="segment" id="btnJuryResult" aria-controls="juryResultContainer" aria-pressed="false">Result</button>
+        </div>
+        <div class="section-grid-2 jury-grid" id="jurySplit" data-pane="editor"><div class="panel-card jury-editor scroll-region" id="juryEditor" tabindex="0" role="region" aria-label="Email to reconcile"><div class="panel-heading"><span class="kpi-icon green"><svg class="icon"><use href="#i-mail"/></svg></span><div><h2>New Email</h2><p>Paste invoice text or pick a sample scenario</p></div></div><form id="juryCustomForm"><div class="form-field"><label for="juryPresetSelect">Sample scenarios</label><select id="juryPresetSelect"><option value="">Custom email</option></select></div><div class="sender-fields"><div class="form-field"><label for="jurySenderInput">Sender</label><input type="text" id="jurySenderInput" value="TapeWorks Inc., billing@tapeworks.example" required></div><div class="form-field"><label for="juryDateInput">Received date &amp; time</label><input type="text" id="juryDateInput" value="16.11 14:30" required></div></div><div class="form-field"><label for="juryTextInput">Email or invoice text</label><textarea id="juryTextInput" rows="5" required>Corrected invoice 52 under order PO-08, second batch: adhesive tape 48 mm × 66 m, 240 rolls at 95 USD. Total 22,800 USD. Previous version had a typo in the total amount.</textarea></div><button type="submit" class="btn btn-primary full-width" id="btnAnalyze"><svg class="icon"><use href="#i-spark"/></svg>Run reconciliation</button>
+        <section id="aiProposal" class="ai-proposal" aria-labelledby="aiTitle" hidden>
+          <h3 id="aiTitle">Confirm invoice fields</h3>
+          <dl id="aiFields"></dl>
+          <button type="button" class="btn btn-primary full-width" id="btnAiConfirm" disabled>Confirm and reconcile</button>
+        </section>
+        <p class="form-note" id="juryEngineStatus" role="status">Checked against purchase orders, receipts, and case rules</p></form></div><div class="inspector-card jury-result scroll-region" id="juryResultContainer" tabindex="0" role="region" aria-label="Reconciliation result" aria-live="polite"></div></div>
+      </section>
+
+      <section id="tab-reference" class="tab-panel" aria-label="Reference data" hidden>
+        <div class="segment-control" data-segments role="group" aria-label="Data source"><button class="segment active" data-show-pane="reference-rules" aria-controls="reference-rules" aria-pressed="true">Rules <span id="refRulesCount">9</span></button><button class="segment" data-show-pane="reference-orders" aria-controls="reference-orders" aria-pressed="false">Orders <span id="refOrdersCount">14</span></button><button class="segment" data-show-pane="reference-approvals" aria-controls="reference-approvals" aria-pressed="false">Approvals <span id="refApprovalsCount">6</span></button></div>
+        <div class="reference-pane content-pane scroll-region" id="reference-rules" tabindex="0" role="region" aria-label="Reconciliation rules"><div class="rules-grid" id="rulesCardsGrid"></div></div>
+        <div class="reference-pane content-pane table-wrapper scroll-region" id="reference-orders" tabindex="0" role="region" aria-label="Orders and receipts" hidden><table><caption>Orders and receipts · snapshot as of Nov 16, 2026, 12:00</caption><thead><tr><th>Order</th><th>Supplier / buyer</th><th>Material</th><th>Ordered</th><th>Accepted</th><th>Price</th><th>Approval</th></tr></thead><tbody id="ordersTableBody"></tbody></table></div>
+        <div class="reference-pane content-pane table-wrapper scroll-region" id="reference-approvals" tabindex="0" role="region" aria-label="Approvals" hidden><table><caption>Order amendments · Directum RX export from case</caption><thead><tr><th>Document</th><th>Order</th><th>Change</th><th>Status</th><th>Signed by</th></tr></thead><tbody id="approvalsTableBody"></tbody></table></div>
+        <p class="source-note" id="sourceNoteText"><svg class="icon"><use href="#i-file"/></svg>Source: case04.xlsx · sample export, no live ERP connection</p>
+      </section>
+
+      <section id="tab-analytics" class="tab-panel" aria-label="Reconciliation analytics" hidden>
+        <div class="segment-control" data-segments role="group" aria-label="Analytics section">
+          <button class="segment active" data-show-pane="analytics-overview" aria-controls="analytics-overview" aria-pressed="true">Overview</button>
+          <button class="segment" data-show-pane="analytics-risks" aria-controls="analytics-risks" aria-pressed="false">Risks</button>
+          <button class="segment" data-show-pane="analytics-economics" aria-controls="analytics-economics" aria-pressed="false">Time Savings</button>
+        </div>
+        <div class="content-pane scroll-region analytics-overview" id="analytics-overview" tabindex="0" role="region" aria-label="Queue overview">
+          <div class="kpi-card chart-card analytics-flow"><div class="kpi-top">Incoming Flow <span class="chart-period">Daily</span></div><div class="chart-legend"><span><i></i>All emails</span><span><i class="attention-dot"></i>Needs attention</span></div><div class="daily-chart" id="dailyChart" role="img" aria-label="Incoming email count by day"></div><div class="chart-caption"><span>Date received</span><strong id="peakDayLabel"></strong></div></div>
+          <div class="panel-card"><div class="panel-eyebrow">QUEUE BREAKDOWN</div><h2>Reconciliation Summary</h2><p id="analyticsSummaryText">8 of 25 documents are ready for the draft registry. 14 require follow-up actions, and 3 are informational emails.</p><div class="distribution-bar" id="distributionBar" aria-hidden="true"></div><div id="analyticsBarsContainer"></div></div>
+        </div>
+        <div class="content-pane scroll-region analytics-risks" id="analytics-risks" tabindex="0" role="region" aria-label="Risk breakdown" hidden>
+          <div class="section-title"><h2>Flagged Risk Breakdown</h2><span class="muted">Held amounts do not necessarily equal proven losses</span></div><div class="risk-grid" id="riskBreakdown"></div>
+        </div>
+        <div class="content-pane scroll-region analytics-economics" id="analytics-economics" tabindex="0" role="region" aria-label="Time savings estimate" hidden>
+          <div class="panel-card"><div class="panel-eyebrow">ESTIMATED TIME SAVINGS</div><h2>Less Manual Review</h2><p>Impact model assuming manual review time drops to 1.5 minutes per invoice. This is a pilot assumption, not a measured benchmark.</p><div class="roi-controls"><label for="roiInvoicesRange">Invoices per month <strong id="roiInvoicesVal"></strong></label><input type="range" id="roiInvoicesRange" min="80" max="600" step="20" value="160"><label for="roiMinutesRange">Minutes per manual review <strong id="roiMinutesVal"></strong></label><input type="range" id="roiMinutesRange" min="8" max="25" step="1" value="15"><label for="roiRateRange">Hourly labor rate <strong id="roiRateVal"></strong></label><input type="range" id="roiRateRange" min="700" max="2500" step="100" value="1200"></div><div class="roi-result"><span>Estimated time freed</span><strong id="roiSavedHours"></strong><span>Estimated annual value</span><b id="roiSavedPayroll"></b></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  </div>
+
+  <dialog id="messageModal" aria-labelledby="modalTitle"><div class="dialog-header"><div><div class="eyebrow">NEXT STEP</div><h2 id="modalTitle">Draft Request</h2></div><form method="dialog"><button class="icon-btn" aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></form></div><div class="dialog-body"><div class="draft-meta"><span>To</span><strong id="modalRecipientName"></strong><span>Role</span><span id="modalRecipientRole"></span><span>Subject</span><strong id="modalSubject"></strong></div><pre id="modalBodyText" tabindex="0"></pre><div class="dialog-footer"><span class="muted">Copy and send from your email client.</span><button class="btn btn-primary" id="btnCopyMessage"><svg class="icon"><use href="#i-copy"/></svg>Copy</button></div><p id="copyConfirmToast" role="status"></p></div></dialog>
+  <div class="toast" id="appToast" role="status" hidden></div>
+  <script src="data_bundle.js"></script>
+  <script src="app.js?v=hig"></script>
+</body>
+</html>

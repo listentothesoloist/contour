@@ -1,0 +1,270 @@
+{
+  "uid": "otel-system",
+  "title": "OpenTelemetry · Security Logs & Metrics",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "tags": [
+    "otel",
+    "demo"
+  ],
+  "links": [
+    {
+      "title": "Invoice Reconciliation",
+      "type": "link",
+      "url": "/d/otel-invoices",
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Logs by Severity",
+      "type": "timeseries",
+      "description": "Count of synthetic Target invoice reconciliation events by INFO, WARN, and ERROR levels.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 10,
+        "h": 12
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(Timestamp) AS time, SeverityText AS level, count() AS events FROM otel.logs WHERE ServiceName = 'system-generator' AND $__timeFilter(Timestamp) GROUP BY time, level ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Security Logs (ClickHouse · WARN / ERROR)",
+      "type": "logs",
+      "description": "Security-relevant events (WARN/ERROR) from the standalone log generator: SQLi, brute force, 401/403, payment spoofing, token leak.",
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 14,
+        "h": 12
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "logs",
+          "format": 2,
+          "rawSql": "SELECT Timestamp AS timestamp, Body AS body, SeverityText AS level, LogAttributes['threat.category'] AS category, LogAttributes['threat.risk'] AS risk, LogAttributes['http.response.status_code'] AS http_status, LogAttributes['client.address'] AS source_ip, LogAttributes['url.path'] AS target_path, LogAttributes['operation.name'] AS operation, LogAttributes['reconciliation.run_id'] AS run_id FROM otel.logs WHERE ServiceName = 'system-generator' AND SeverityText IN ('WARN', 'ERROR') AND $__timeFilter(Timestamp) ORDER BY Timestamp DESC LIMIT 200"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "CPU Utilization",
+      "type": "timeseries",
+      "description": "Synthetic CPU utilization percentage.",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(TimeUnix) AS time, avg(Value) AS value FROM otel.metrics WHERE ServiceName = 'system-generator' AND MetricName = 'demo.system.cpu.utilization' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Memory Used",
+      "type": "timeseries",
+      "description": "Synthetic memory usage in bytes.",
+      "gridPos": {
+        "x": 8,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(TimeUnix) AS time, avg(Value) AS value FROM otel.metrics WHERE ServiceName = 'system-generator' AND MetricName = 'demo.system.memory.used' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Request Latency p95",
+      "type": "timeseries",
+      "description": "Synthetic p95 request latency in milliseconds.",
+      "gridPos": {
+        "x": 16,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(TimeUnix) AS time, avg(Value) AS value FROM otel.metrics WHERE ServiceName = 'system-generator' AND MetricName = 'demo.system.request.duration.p95' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Queue Depth",
+      "type": "timeseries",
+      "description": "Synthetic number of queued tasks.",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(TimeUnix) AS time, avg(Value) AS value FROM otel.metrics WHERE ServiceName = 'system-generator' AND MetricName = 'demo.system.queue.depth' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Error Rate",
+      "type": "timeseries",
+      "description": "Synthetic percentage of failed requests.",
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT $__timeInterval(TimeUnix) AS time, avg(Value) AS value FROM otel.metrics WHERE ServiceName = 'system-generator' AND MetricName = 'demo.system.error.rate' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time"
+        }
+      ]
+    }
+  ]
+}

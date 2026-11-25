@@ -1,0 +1,185 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: target-audit-result
+  namespace: observability
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: target-audit-trivy-cache
+  namespace: observability
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: target-audit-reports
+  namespace: observability
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: target-passive-auditor
+  namespace: observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: target-passive-auditor
+  namespace: observability
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["target-audit-result"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: target-passive-auditor
+  namespace: observability
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: target-passive-auditor
+subjects:
+  - kind: ServiceAccount
+    name: target-passive-auditor
+    namespace: observability
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-passive-auditor
+  namespace: observability
+  labels:
+    app: target-passive-auditor
+spec:
+  # Kubernetes defaults to one replica on creation and preserves manual scaling.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: target-passive-auditor
+  template:
+    metadata:
+      labels:
+        app: target-passive-auditor
+    spec:
+      serviceAccountName: target-passive-auditor
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: local-model
+          image: target-audit-model:local
+          imagePullPolicy: Never
+          restartPolicy: Always
+          args:
+            ["--host", "127.0.0.1", "--port", "8070", "-m", "/models/audit.gguf",
+             "--ctx-size", "8192", "--threads", "3", "--parallel", "1", "--no-ui"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 1Gi
+            limits:
+              cpu: "3"
+              memory: 3Gi
+      containers:
+        - name: auditor
+          image: target-security-audit:passive-v2
+          imagePullPolicy: Never
+          command: ["python", "/app/passive.py"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          env:
+            - name: GOMAXPROCS
+              value: "2"
+            - name: HOME
+              value: /tmp
+          volumeMounts:
+            - name: kube-api-access
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
+            - name: sboms
+              mountPath: /sboms
+              readOnly: true
+            - name: trivy-cache
+              mountPath: /cache
+            - name: audit-reports
+              mountPath: /reports
+            - name: scratch
+              mountPath: /tmp
+      volumes:
+        - name: kube-api-access
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  expirationSeconds: 3600
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - path: namespace
+                      fieldRef:
+                        fieldPath: metadata.namespace
+        - name: sboms
+          configMap:
+            name: target-audit-sboms
+            optional: true
+        - name: trivy-cache
+          persistentVolumeClaim:
+            claimName: target-audit-trivy-cache
+        - name: audit-reports
+          persistentVolumeClaim:
+            claimName: target-audit-reports
+        - name: scratch
+          emptyDir:
+            sizeLimit: 2Gi

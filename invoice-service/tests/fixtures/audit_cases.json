@@ -1,0 +1,82 @@
+[
+  {
+    "id": "unknown_order",
+    "sender": "New Supplier LLC, sales@new.example",
+    "text": "Invoice 900 under order PO-99: unknown material, 1 pcs at 100 USD. Total 100 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NEEDS_REVIEW",
+    "expected_payable": 0
+  },
+  {
+    "id": "missing_lines",
+    "sender": "TapeWorks Inc., billing@tapeworks.example",
+    "text": "Corrected invoice 52 under order PO-08. Total 99,000 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NEEDS_REVIEW",
+    "expected_payable": 0
+  },
+  {
+    "id": "wrong_material",
+    "sender": "TapeWorks Inc., billing@tapeworks.example",
+    "text": "Corrected invoice 52 under order PO-08: electrical cable, 240 rolls at 95 USD. Total 22,800 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NEEDS_REVIEW",
+    "expected_payable": 0
+  },
+  {
+    "id": "wrong_unit",
+    "sender": "TapeWorks Inc., billing@tapeworks.example",
+    "text": "Corrected invoice 52 under order PO-08: adhesive tape 48 mm × 66 m, 240 kg at 95 USD. Total 22,800 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NEEDS_REVIEW",
+    "expected_payable": 0
+  },
+  {
+    "id": "wrong_approved_price",
+    "sender": "PackLine Supply, invoice@packline.example",
+    "text": "Corrected invoice 201 under order PO-02: berry pouch 1 kg, 10,000 pcs at 6 USD. Total 60,000 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "PRICE_OR_QTY_UNAPPROVED",
+    "expected_payable": 0
+  },
+  {
+    "id": "cumulative_acceptance",
+    "sender": "NordLabel Ltd., billing@nordlabel.example",
+    "text": "Invoice 125 under PO-07, second batch: thermal label 100×150, 2 rolls of 1,000 pcs, roll price 1,500 USD. Total 3,000 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NOT_ACCEPTED_YET",
+    "expected_payable": 0
+  },
+  {
+    "id": "internal_unknown",
+    "sender": "Owen Miller, buyer, o.miller@northberry.example",
+    "text": "Regarding PO-99: please confirm the delivery date.",
+    "received_at": "16.11 14:30",
+    "expected_status": "NEEDS_REVIEW",
+    "expected_payable": 0
+  },
+  {
+    "id": "changed_requisites_wording",
+    "sender": "TapeWorks Inc., billing@tapeworks.example",
+    "text": "Corrected invoice 52 under order PO-08, second batch: adhesive tape 48 mm × 66 m, 240 rolls at 95 USD. Total 22,800 USD. Payment recipient is now Factor LLC. Please wire funds to Acct No. 40702810000000000555.",
+    "received_at": "16.11 14:30",
+    "expected_status": "CRITICAL_REQUISITES",
+    "expected_payable": 0
+  },
+  {
+    "id": "corrected_control",
+    "sender": "TapeWorks Inc., billing@tapeworks.example",
+    "text": "Corrected invoice 52 under order PO-08, second batch: adhesive tape 48 mm × 66 m, 240 rolls at 95 USD. Total 22,800 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "READY_TO_PAY",
+    "expected_payable": 22800
+  },
+  {
+    "id": "math_control",
+    "sender": "NordLabel Ltd., billing@nordlabel.example",
+    "text": "Invoice 125 under PO-07, second batch: thermal label 100×150, 2 rolls of 1,000 pcs, roll price 1,500 USD. Total 3,500 USD.",
+    "received_at": "16.11 14:30",
+    "expected_status": "MATH_ERROR",
+    "expected_payable": 0
+  }
+]

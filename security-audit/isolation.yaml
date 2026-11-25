@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: target-security-audit-isolation
+  namespace: observability
+spec:
+  podSelector:
+    matchLabels:
+      app: target-security-audit
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress: []

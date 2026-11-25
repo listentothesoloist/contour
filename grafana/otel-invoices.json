@@ -1,0 +1,78 @@
+{
+  "uid": "otel-invoices",
+  "title": "OpenTelemetry · Invoice Service Logs",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "links": [
+    { "title": "Security Logs & Metrics", "type": "link", "url": "/d/otel-system", "keepTime": true }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Invoice Service Events by Severity",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "timeseries",
+          "format": 0,
+          "rawSql": "SELECT toStartOfInterval(Timestamp, INTERVAL 10 SECOND) AS time, SeverityText AS severity, count() AS events FROM otel.otel_logs WHERE ServiceName = 'invoice-reconciliation' AND $__timeFilter(Timestamp) GROUP BY time, severity ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Reconciliation Logs and IDS Alerts",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 13
+      },
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "queryType": "logs",
+          "format": 2,
+          "rawSql": "SELECT Timestamp AS timestamp, Body AS body, SeverityText AS level, LogAttributes['event.source'] AS source, LogAttributes['operation.name'] AS operation, LogAttributes['threat.category'] AS category, LogAttributes['http.response.status_code'] AS http_status, LogAttributes['duration.ms'] AS duration_ms, LogAttributes['reconciliation.run_id'] AS run_id FROM otel.otel_logs WHERE ServiceName = 'invoice-reconciliation' AND $__timeFilter(Timestamp) ORDER BY Timestamp DESC LIMIT 200"
+        }
+      ]
+    }
+  ]
+}

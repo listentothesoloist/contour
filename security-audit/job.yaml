@@ -1,0 +1,74 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: target-security-audit-
+  namespace: observability
+  labels:
+    app: target-security-audit
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 480
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: target-security-audit
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: local-model
+          image: target-audit-model:local
+          imagePullPolicy: Always
+          restartPolicy: Always
+          args:
+            ["--host", "127.0.0.1", "--port", "8070", "-m", "/models/audit.gguf",
+             "--ctx-size", "8192", "--threads", "4", "--parallel", "1", "--no-ui"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 1500Mi
+            limits:
+              cpu: "4"
+              memory: 3Gi
+      containers:
+        - name: audit
+          image: target-security-audit:local
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "25m"
+              memory: 32Mi
+            limits:
+              cpu: "250m"
+              memory: 128Mi
+          env:
+            - name: AUDIT_RUN
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['batch.kubernetes.io/job-name']
+          volumeMounts:
+            - name: evidence
+              mountPath: /input
+              readOnly: true
+      volumes:
+        - name: evidence
+          configMap:
+            name: target-security-audit-input

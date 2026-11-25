@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: observability
+  name: invoice-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invoice-service
+  template:
+    metadata:
+      labels:
+        app: invoice-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17-alpine
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              until pg_isready -q -h postgres -U orders -d orders; do
+                sleep 2
+              done
+          resources:
+            requests:
+              cpu: "25m"
+              memory: 32Mi
+            limits:
+              cpu: "100m"
+              memory: 64Mi
+      containers:
+        - name: invoice-service
+          image: otel-course-invoices:local
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 256Mi
+          ports:
+            - containerPort: 8040
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8040
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8040
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8040
+          env:
+            - name: OTEL_LOGS_URL
+              value: http://otel-collector:4318/v1/logs
+            - name: TARGET_IDS_ENABLED
+              value: "true"
+            - name: TARGET_OLLAMA_URL
+              value: http://host.docker.internal:11434/api/chat
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-credentials
+                  key: POSTGRES_PASSWORD
+          imagePullPolicy: Never
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: observability
+  name: invoice-service
+spec:
+  selector:
+    app: invoice-service
+  ports:
+    - port: 8040

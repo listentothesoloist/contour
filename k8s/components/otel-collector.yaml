@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: observability
+  name: otel-collector
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      batch:
+        timeout: 2s
+      filter/applications:
+        logs:
+          log_record:
+            - 'resource.attributes["service.name"] == "system-generator"'
+      filter/system:
+        logs:
+          log_record:
+            - 'resource.attributes["service.name"] != "system-generator"'
+    exporters:
+      clickhouse:
+        endpoint: tcp://clickhouse:9000
+        database: otel
+        username: otel
+        password: ${env:CLICKHOUSE_PASSWORD}
+        create_schema: true
+        ttl: 72h
+      clickhouse/system:
+        endpoint: tcp://clickhouse:9000
+        database: otel
+        username: otel
+        password: ${env:CLICKHOUSE_PASSWORD}
+        create_schema: true
+        ttl: 72h
+        logs_table_name: logs
+        metrics_tables:
+          gauge:
+            name: metrics
+    service:
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [filter/applications, batch]
+          exporters: [clickhouse]
+        logs/system:
+          receivers: [otlp]
+          processors: [filter/system, batch]
+          exporters: [clickhouse/system]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [clickhouse/system]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: observability
+  name: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - port: 4318
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: observability
+  name: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      initContainers:
+        - name: wait-for-clickhouse
+          image: clickhouse/clickhouse-server:25.3
+          resources:
+            requests:
+              cpu: "25m"
+              memory: 64Mi
+            limits:
+              cpu: "250m"
+              memory: 256Mi
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              until clickhouse-client --host clickhouse --user otel --password "$CLICKHOUSE_PASSWORD" --query "SELECT 1"; do
+                sleep 3
+              done
+          env:
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-credentials
+                  key: CLICKHOUSE_PASSWORD
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.127.0
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi
+          env:
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-credentials
+                  key: CLICKHOUSE_PASSWORD
+          ports:
+            - containerPort: 4318
+          startupProbe:
+            tcpSocket:
+              port: 4318
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            tcpSocket:
+              port: 4318
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            tcpSocket:
+              port: 4318
+          args: ["--config=/etc/otel/config.yaml"]
+          volumeMounts:
+            - name: otel-collector
+              mountPath: /etc/otel
+      volumes:
+        - name: otel-collector
+          configMap:
+            name: otel-collector
